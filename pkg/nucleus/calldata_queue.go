@@ -47,7 +47,7 @@ func NewCalldataQueue(
 	rpcRegistry rpcregistry.IRegistry,
 	transactor *bind.TransactOpts,
 ) (*CalldataQueue, error) {
-	managerAddress := common.HexToAddress(client.GetAddressBook()[chainId].Nucleus[symbol].Manager)
+	managerAddress := common.HexToAddress(client.GetAddressBook()[chainId].Nucleus.Vaults[symbol].Manager)
 	ethClient, err := rpcRegistry.GetClient(chainId)
 
 	caller, err := manageroot.NewManageRootCaller(managerAddress, ethClient)

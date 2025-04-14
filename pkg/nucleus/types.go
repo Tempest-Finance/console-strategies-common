@@ -1,22 +1,20 @@
 package nucleus
 
 import (
+	"encoding/json"
 	"math/big"
 
 	"github.com/ethereum/go-ethereum/common"
 )
 
-type NetworkData struct {
-	ID          string               `json:"id"`
-	Multisig    string               `json:"multisig"`
-	Token       map[string]string    `json:"token"`
-	Thunderhead ThunderheadData      `json:"thunderhead"`
-	Hyperswap   HyperswapData        `json:"hyperswap"`
-	Nucleus     map[string]VaultData `json:"nucleus"`
-}
+type AddressBook map[int64]NetworkData
 
-type ThunderheadData struct {
-	Overseer string `json:"overseer"`
+type NetworkData struct {
+	ID        string            `json:"name"`
+	Multisig  string            `json:"multisig,omitempty"`
+	Token     map[string]string `json:"token,omitempty"`
+	Hyperswap HyperswapData     `json:"hyperswap,omitempty"`
+	Nucleus   ChainConfig       `json:"nucleus"`
 }
 
 type HyperswapData struct {
@@ -24,13 +22,19 @@ type HyperswapData struct {
 	NonfungiblePositionManager string `json:"nonfungiblePositionManager"`
 }
 
-type VaultData struct {
+type VaultDetail struct {
 	BoringVault    string `json:"boring_vault"`
 	Manager        string `json:"manager"`
 	Accountant     string `json:"accountant"`
 	Teller         string `json:"teller"`
 	RolesAuthority string `json:"roles_authority"`
 }
+
+type ChainConfig struct {
+	Vaults map[string]VaultDetail `json:"-"`
+}
+
+type rawNucleus map[string]json.RawMessage
 
 type Transaction struct {
 	Target    common.Address `json:"target"`

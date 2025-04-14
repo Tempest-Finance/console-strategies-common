@@ -12,9 +12,9 @@ type Client struct {
 	client  *resty.Client
 	chainId int64
 
-	NucleusAPIKey string
-	BaseURL       string
-	AddressBook   map[int64]NetworkData
+	nucleusAPIKey string
+	baseURL       string
+	addressBook   map[int64]NetworkData
 }
 
 func NewClient(nucleusAPIKey, baseURL string) (*Client, error) {
@@ -26,8 +26,7 @@ func NewClient(nucleusAPIKey, baseURL string) (*Client, error) {
 		SetHeader("Content-Type", "application/json").
 		SetHeader("x-api-key", nucleusAPIKey)
 
-	var addressBook map[int64]NetworkData
-	resp, err := client.R().SetResult(&addressBook).Get(AddressBookUrl)
+	resp, err := client.R().Get(AddressBookUrl)
 	if err != nil {
 		return nil, err
 	}
@@ -36,11 +35,16 @@ func NewClient(nucleusAPIKey, baseURL string) (*Client, error) {
 		return nil, errors.New(fmt.Sprintf("Failed to fetch address book: %s", resp.Status()))
 	}
 
+	addressBook, err := parseAddressBook(resp.Body())
+	if err != nil {
+		return nil, err
+	}
+
 	return &Client{
 		client:        client,
-		NucleusAPIKey: nucleusAPIKey,
-		BaseURL:       baseURL,
-		AddressBook:   addressBook,
+		nucleusAPIKey: nucleusAPIKey,
+		baseURL:       baseURL,
+		addressBook:   addressBook,
 	}, nil
 }
 
@@ -53,7 +57,7 @@ func (c *Client) Post(ctx context.Context, endpoint string, jsonData []byte) (in
 }
 
 func (c *Client) GetAddressBook() map[int64]NetworkData {
-	return c.AddressBook
+	return c.addressBook
 }
 
 func (c *Client) request(ctx context.Context, method, endpoint string, jsonData []byte, queryParams map[string]string) (interface{}, error) {
