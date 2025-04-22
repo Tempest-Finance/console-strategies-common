@@ -16,6 +16,7 @@ import (
 
 type IClient interface {
 	GetRealtimeTokenPriceUsd(ctx context.Context, chainID int64, tokenAddresses []string) (map[string]Token, *goerrors.Error)
+	GetHistoricalTokenPriceUsd(ctx context.Context, chainID int64, tokenAddresses []string, timestamp int64) (map[string]Token, *goerrors.Error)
 }
 
 type Client struct {
@@ -49,6 +50,61 @@ func (c *Client) GetRealtimeTokenPriceUsd(ctx context.Context, chainID int64, to
 	for _, tokenAddress := range tokenAddresses {
 		params.Add("ids", fmt.Sprintf("%d_%s", chainID, tokenAddress))
 	}
+
+	for i := 0; i < 3; i++ {
+		_, res, errRes, err := http.
+			R[GetTokenPriceRes, string](c.httpClient).
+			SetQueryParamsFromValues(params).
+			SetHeader("Content-Type", "application/json").
+			SetHeader("x-api-key", c.config.ApiKey).
+			Get(ctx, c.config.GetPriceUrl)
+
+		if err != nil {
+			if i == 2 {
+				logger.Error(ctx, err)
+				return nil, goerrors.NewErrUnknown(err)
+			} else {
+				time.Sleep(time.Second)
+				continue
+			}
+		}
+		if errRes != nil {
+			if i == 2 {
+				logger.Error(ctx, errRes)
+				goErr := goerrors.NewErrUnknown(fmt.Errorf("PriceService: %v", errRes))
+				logger.Error(ctx, goErr)
+				return nil, goErr
+			} else {
+				time.Sleep(time.Second)
+				continue
+			}
+		}
+		for address, price := range res.Data {
+			result[address] = Token{
+				ChainID:  chainID,
+				Address:  strings.Split(address, ":")[1],
+				PriceUsd: decimal.NewFromFloat(price),
+			}
+		}
+		break
+	}
+
+	return result, nil
+}
+
+func (c *Client) GetHistoricalTokenPriceUsd(ctx context.Context, chainID int64, tokenAddresses []string, timestamp int64) (map[string]Token, *goerrors.Error) {
+	if len(tokenAddresses) == 0 {
+		return map[string]Token{}, nil
+	}
+
+	result := map[string]Token{}
+	params := url.Values{}
+
+	for _, tokenAddress := range tokenAddresses {
+		params.Add("ids", fmt.Sprintf("%d_%s", chainID, tokenAddress))
+	}
+
+	params.Add("timestamp", fmt.Sprintf("%d", timestamp))
 
 	for i := 0; i < 3; i++ {
 		_, res, errRes, err := http.
