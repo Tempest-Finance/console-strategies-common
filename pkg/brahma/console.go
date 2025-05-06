@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Brahma-fi/go-safe/encoders"
 	"github.com/Tempest-Finance/console-strategies-common/pkg/abi/multisendcallonly"
 	"github.com/ethereum/go-ethereum/accounts/abi/bind"
 	"github.com/ethereum/go-ethereum/common"
@@ -34,12 +33,10 @@ func NewConsole(client IClient, rpcRegistry rpcregistry.IRegistry, executorPlugi
 
 // Execute executes a safe transaction and return task ID
 func (c *Console) Execute(ctx context.Context, params *ExecuteParams) (*TaskInfo, error) {
-	safeTx, err := encoders.GetEncodedSafeTx(
-		common.Address{},
+	safeTx, err := GetEncodedSafeTx(
 		params.MultiSendCallOnlyAddress,
 		multisendcallonly.ABI,
 		params.Transactions,
-		params.ChainID,
 	)
 	if err != nil {
 		return nil, err
