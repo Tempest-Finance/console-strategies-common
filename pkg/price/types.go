@@ -1,15 +1,17 @@
 package price
 
-import (
-	"github.com/shopspring/decimal"
-)
+type Request struct {
+	ChainID      string `json:"chainId"`
+	TokenAddress string `json:"tokenAddress"`
+	Timestamp    int64  `json:"timestamp"`
+}
 
 type Token struct {
-	ChainID  int64
-	Address  string
-	PriceUsd decimal.Decimal
+	ChainID  string `json:"chainId"`
+	Address  string `json:"address"`
+	PriceUsd string `json:"priceUsd"`
 }
 
 type GetTokenPriceRes struct {
-	Data map[string]float64 `json:"data"`
+	Data []Token `json:"data"`
 }
