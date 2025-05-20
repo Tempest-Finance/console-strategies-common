@@ -22,6 +22,7 @@ func Init() error {
 	asynqmonUser := getEnv("ASYNQMON_USER", "admin")
 	asynqmonPassword := getEnv("ASYNQMON_PASSWORD", "admin")
 	redisAddr := getEnv("REDIS_ADDR", ":6379")
+	redisPassword := getEnv("REDIS_PASSWORD", "")
 	port := getEnv("PORT", "9000")
 
 	app := new(application)
@@ -30,7 +31,7 @@ func Init() error {
 
 	h := asynqmon.New(asynqmon.Options{
 		RootPath:     "/",
-		RedisConnOpt: asynq.RedisClientOpt{Addr: redisAddr},
+		RedisConnOpt: asynq.RedisClientOpt{Addr: redisAddr, Password: redisPassword},
 	})
 
 	http.Handle(h.RootPath()+"/", app.basicAuth(h))
